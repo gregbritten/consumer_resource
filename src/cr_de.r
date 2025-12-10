@@ -1,4 +1,4 @@
-cr_de <- function(t, x, theta) {
+cr_de <- function(t, x, theta, cyclic=FALSE) {
     # Unpack parameters from the list 'p'
     n_species   <- p$n_species
     n_resources <- p$n_resources
@@ -8,11 +8,13 @@ cr_de <- function(t, x, theta) {
     Vmax        <- p$Vmax
     S           <- p$S
     m           <- p$m
-    
-    #substrate supply
-    #S_in1_t <- S_in_base[1] * (1.0 + 0.6 * sin(2 * pi * t / 40))
-    #S_in2_t <- S_in_base[2] * (1.0 + 0.4 * cos(2 * pi * t / 60))
-    
+    phi         <- p$phi
+    omega       <- p$omega
+
+    for(i in 1:n_resources){
+        S[i] <- S[i] * (1.0 + cos(2 * pi * t / omega[i]))
+    }
+
     # Extract biomass (B) and substrate (S) concentrations from the state vector 'u'
     B <- x[1:n_species]
     R <- x[(n_species + 1):length(x)]
