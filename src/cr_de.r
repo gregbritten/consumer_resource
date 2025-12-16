@@ -15,21 +15,18 @@ cr_de <- function(t, x, theta, cyclic=FALSE) {
         S[i] <- S[i] * (1.0 + cos(2 * pi * t / omega[i]))
     }
 
-    # Extract biomass (B) and substrate (S) concentrations from the state vector 'u'
-    B <- x[1:n_species]
-    R <- x[(n_species + 1):length(x)]
+    B <- x[1:n_species]  #extract biomass
+    R <- x[(n_species + 1):length(x)] #extract resource concentrations
     
-    # Initialize derivative vector (du)
-    dx <- rep(0, length(x))
+    dx <- rep(0, length(x))  #initialize derivative vector
 
-    # Calculate growth rates for each species (mu_i)
-    mu <- rep(0, n_species)
+    mu <- rep(0, n_species) #initialize growth rate vector
 
     for (i in 1:n_species) {
         consumption_i <- 0.0
         for (j in 1:n_resources) {
-            v_ij          <- Vmax[i, j] * R[j] / (K[i, j] + R[j])
-            consumption_i <- consumption_i + v_ij
+            v_ij          <- Vmax[i,j] * R[j] / (K[i,j] + R[j]) #vmax can't be pulled out because they differ with substrate 
+            consumption_i <- consumption_i + v_ij #substitutable resources (additive contributions)
         }
         mu[i] <- consumption_i
     }
@@ -46,10 +43,9 @@ cr_de <- function(t, x, theta, cyclic=FALSE) {
             v_ij          <- Vmax[i, j] * R[j] / (K[i, j] + R[j])
             consumption_j <- consumption_j + (v_ij * B[i]) / Y[i, j]
         }
-        # Use the time-varying S_in_t for the inflow
-        dx[n_species + j] <- (D * S[j]) - (D * R[j]) - consumption_j
+        dx[n_species + j] <- (D * S[j]) - (D * R[j]) - consumption_j  # Use the time-varying S_in_t for the inflow
+
     }
     
-    # deSolve expects a list containing a vector of derivatives
-    return(list(dx))
+    return(list(dx))  #pass deSolve a list containing a vector of derivatives
 }

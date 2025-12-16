@@ -1,0 +1,57 @@
+# Install necessary packages if you don't have them
+# install.packages("deSolve")
+# install.packages("rstan")
+
+library(deSolve)
+library(rstan)
+library(ggplot2)
+
+# Define the Holling Type II ODE model function in R
+holling_typeII_model_R <- function(t, y, params) {
+  with(as.list(c(y, params)), {
+    # y[1] = R (Resource), y[2] = C (Consumer)
+    # Parameters: r, K, a, h, e, m
+    functional_response <- (a * R) / (1 + a * h * R)
+    dR_dt <- r * R * (1 - R / K) - functional_response * C
+    dC_dt <- e * functional_response * C - m * C
+    return(list(c(dR_dt, dC_dt)))
+  })
+}
+
+# --- Simulation Parameters and Data Generation ---
+params_true <- c(r = 0.5, K = 100.0, a = 0.1, h = 0.2, e = 0.5, m = 0.15)
+y0 <- c(R = 20.0, C = 5.0) # Initial conditions
+times <- seq(0, 100, by = 1) # Time points for observation
+
+# Solve the ODEs to get true population dynamics
+solution_true <- ode(
+    y = y0, 
+    times = times, 
+    func = holling_typeII_model_R, 
+    parms = params_true
+)
+solution_true <- as.data.frame(solution_true)
+
+# Add noise to create "observed" data for Stan
+set.seed(42)
+sigma_noise <- 1.0 # True observation error
+observed_data <- solution_true[, c("R", "C")] + matrix(
+    rnorm(nrow(solution_true) * 2, mean = 0, sd = sigma_noise), 
+    ncol = 2
+)
+observed_data[observed_data < 0] <- 0 # Ensure non-negative observations
+
+# Prepare data list for Stan
+stan_data <- list(
+  T = nrow(observed_data),                 # Number of time points
+  y0 = as.array(y0),                       # Initial conditions (array)
+  t0 = times[1],                           # Initial time
+  ts = times[-1],                          # Observation times (excluding t0)
+  y_obs = as.matrix(observed_data[-1, ])   # Observed data (excluding t0)
+)
+
+# Optional: Plot the data to visualize
+# plot(solution_true$time, solution_true$R, type='l', col='blue', ylab='Population', xlab='Time')
+# lines(solution_true$time, solution_true$C, type='l', col='green')
+# points(times[-1], stan_data$y_obs[,1], col='blue', pch=1)
+# points(times[-1], stan_data$y_obs[,2], col='green', pch=1)
