@@ -85,14 +85,14 @@ p <- list(
 )
 
 #initial conditions
-R0 <- rep(0.01,n_resources)
-B0 <- rep(0.01,n_species)
+R0        <- rep(0.01,n_resources)
+B0        <- rep(0.01,n_species)
 x0        <- c(B0, R0)
 names(x0) <- c(paste0("B", 1:n_species), paste0("R", 1:n_resources))
 
 #pass to ODE solver
 #sol <- ode(y = x0, times = times, func = cr_de, parms = p, method = "lsoda")
-sol <- ode(y = x0, times = times, func = cr_de, parms=p, method="lsoda")
+sol <- ode(y=x0, times=times, func=cr_de, parms=p, method="lsoda")
 
 #save as list
 SOL <- list(p=p,sol=as.data.frame(sol)) #save solution

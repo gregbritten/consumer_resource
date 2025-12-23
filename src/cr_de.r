@@ -1,4 +1,4 @@
-cr_de <- function(t, x, theta, cyclic=FALSE) {
+cr_de <- function(t, x, p, cyclic=FALSE) {
     #unpack parameters from p
     n_species   <- p$n_species    #number of species
     n_resources <- p$n_resources  #number of resources
@@ -43,7 +43,7 @@ cr_de <- function(t, x, theta, cyclic=FALSE) {
     #compute derivatives for resources dR/dt
     consumption_j <- numeric(n_resources)
     for (j in 1:n_resources) {
-        #loop over resources (could save v_ij from above, but might be expensive for large systems)
+        #loop over resources (could save v_ij from above, but easier and maybe cheaper this way
         for (i in 1:n_species) {
             v_ij          <- Vmax[i,j] * R[j]/(K[i,j] + R[j])
             consumption_j[j] <- consumption_j[j] + (v_ij * B[i])/Y[i,j] #the resource is consumed in a stoichiometric proportion to the biomass growth
@@ -51,5 +51,5 @@ cr_de <- function(t, x, theta, cyclic=FALSE) {
         dx[n_species + j] <- D*(S[j] - R[j]) - consumption_j[j]  #supply of resource
 
     }
-    return(list(dx,consumption_j=consumption_j))  #pass deSolve a list containing a vector of derivatives
+    return(list(dx,consumption_j=consumption_j))  #pass deSolve a list containing a vector of derivatives dx, can also append derived quanities
 }
