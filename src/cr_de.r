@@ -11,10 +11,11 @@ cr_de <- function(t, x, p, cyclic=FALSE) {
     phi         <- p$phi          #phase of resource supply
     omega       <- p$omega        #period of resource supply
     A           <- p$A            #amplitude of resource supply
+    trend       <- p$trend        #trend in resource supply
 
     #periodic resource supply 
     for(i in 1:n_resources){
-        S[i] <- S[i] + A[i]*(1.0 + cos(phi[i] + 2 * pi * t / omega[i]))
+        S[i] <- S[i] + A[i]*(1.0 + cos(phi[i] + 2 * pi * t / omega[i])) + trend*t
     }
 
     B <- x[1:n_species]  #extract biomass concentrations

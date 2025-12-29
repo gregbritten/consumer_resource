@@ -14,17 +14,15 @@ years <- 11
 times <- seq(from=0, to=365*years, by=1) #per day
 
 #chemostat parameters
-D  <- 0.1                 #dilution rate
-m  <- 0.01                #natural mortality rate
-#S  <- rep(1,n_resources) #substrate supply
+D     <- 0.1                 #dilution rate [/day]
+m     <- 0.00                #natural mortality rate [/day]
 S_min <- 0.01  #minimum resource supply concentration
 S_max <- 1     #maximum resource supply concentration
-S <- runif(n_resources,S_min,S_max) #substrate supply
+S     <- runif(n_resources,S_min,S_max) #substrate supply
 omega <- rep(365,n_resources) #periodicity of substrate supplies - assuming all seasonal
-#phi   <- rep(0,n_resources) #periodicity of substrate supplies - assuming all seasonal
 phi   <- seq(-2*pi,2*pi,length.out=n_resources) #periodicity of substrate supplies - assuming all seasonal
 A     <- runif(n_resources,0,2)
-#A     <- rep(0,n_resources)
+trend <- 0.001 #[uM/day/day]
 
 ################################
 ## biological parameters
@@ -38,11 +36,23 @@ A     <- runif(n_resources,0,2)
 #), nrow=num_species, byrow=TRUE)
 
 #random Vmax matrix
-Vmax <- matrix(
+Vmax0 <- matrix(
     runif(0,1,n=n_species*n_resources),
     nrow=n_species,
     ncol=n_resources
 )
+
+#genome
+p <- 0.5 #average proportion of resources able to be used by speices i
+G <- matrix(replicate(n=n_species,  #generate 'true' genome
+            exp=rbinom(n=n_resources,size=1,prob=0.5)),
+            nrow=n_species,
+            ncol=n_resources,
+            byrow=FALSE
+)
+
+#zero out random Vmax entries if species i doesn't utilize resource j
+Vmax <- Vmax0*G
 
 # K half-saturation constants
 #K <- matrix(c(
@@ -76,12 +86,15 @@ p <- list(
     D=D, 
     Y=Y, 
     K=K, 
-    Vmax=Vmax, 
+    Vmax=Vmax,
+    G=G, 
     S=S, 
     m=m,
     phi=phi,
     omega=omega,
-    A=A
+    A=A,
+    trend=trend,
+    G=G
 )
 
 #initial conditions
