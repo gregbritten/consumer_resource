@@ -4,10 +4,11 @@ setwd(here::here())
 
 ##load functions
 source('src/cr_de.r')
+source('src/cr_de_linear.r')
 
 #system dimensions
-n_species   <- 20
-n_resources <- 10
+l_species   <- 20
+l_resources <- 10
 
 #integration time
 years <- 11
@@ -18,10 +19,10 @@ D     <- 0.1                 #dilution rate [/day]
 m     <- 0.00                #natural mortality rate [/day]
 S_min <- 0.01  #minimum resource supply concentration
 S_max <- 1     #maximum resource supply concentration
-S     <- runif(n_resources,S_min,S_max) #substrate supply
-omega <- rep(365,n_resources) #periodicity of substrate supplies - assuming all seasonal
-phi   <- seq(-2*pi,2*pi,length.out=n_resources) #periodicity of substrate supplies - assuming all seasonal
-A     <- runif(n_resources,0,2)
+S     <- runif(l_resources,S_min,S_max) #substrate supply
+omega <- rep(365,l_resources) #periodicity of substrate supplies - assuming all seasonal
+phi   <- seq(-2*pi,2*pi,length.out=l_resources) #periodicity of substrate supplies - assuming all seasonal
+A     <- runif(l_resources,0,2)
 trend <- 0.001 #[uM/day/day]
 
 ################################
@@ -37,17 +38,17 @@ trend <- 0.001 #[uM/day/day]
 
 #random Vmax matrix
 Vmax0 <- matrix(
-    runif(0,1,n=n_species*n_resources),
-    nrow=n_species,
-    ncol=n_resources
+    runif(0,1,n=l_species*l_resources),
+    nrow=l_species,
+    ncol=l_resources
 )
 
 #genome
 p <- 0.5 #average proportion of resources able to be used by speices i
-G <- matrix(replicate(n=n_species,  #generate 'true' genome
-            exp=rbinom(n=n_resources,size=1,prob=0.5)),
-            nrow=n_species,
-            ncol=n_resources,
+G <- matrix(replicate(n=l_species,  #generate 'true' genome
+            exp=rbinom(n=l_resources,size=1,prob=0.5)),
+            nrow=l_species,
+            ncol=l_resources,
             byrow=FALSE
 )
 
@@ -63,17 +64,17 @@ Vmax <- Vmax0*G
 
 #random K matrix
 K <- matrix(
-    runif(0,5,n=n_species*n_resources),
-    nrow=n_species,
-    ncol=n_resources
+    runif(0,5,n=l_species*l_resources),
+    nrow=l_species,
+    ncol=l_resources
 )
 
 #biomass yields (this is where Rittman & McCarty vs. ATP approach would come in...)
 #Y <- matrix(0.5, nrow=n_species, ncol=n_resources)
 Y <- matrix(
-    runif(0,1,n=n_species*n_resources),
-    nrow=n_species,
-    ncol=n_resources
+    runif(0,1,n=l_species*l_resources),
+    nrow=l_species,
+    ncol=l_resources
 )
 
 ##############################
@@ -81,8 +82,8 @@ Y <- matrix(
 ##############################
 #pack parameters into a list
 p <- list(
-    n_species=n_species, 
-    n_resources=n_resources, 
+    l_species=l_species, 
+    l_resources=l_resources, 
     D=D, 
     Y=Y, 
     K=K, 
@@ -94,21 +95,24 @@ p <- list(
     omega=omega,
     A=A,
     trend=trend,
-    G=G
+    times=times
 )
 
 #initial conditions
-R0        <- rep(0.01,n_resources)
-B0        <- rep(0.01,n_species)
-x0        <- c(B0, R0)
-names(x0) <- c(paste0("B", 1:n_species), paste0("R", 1:n_resources))
+r0        <- rep(0.01,l_resources)
+b0        <- rep(0.01,l_species)
+x0        <- c(b0, r0)
+names(x0) <- c(paste0("b", 1:l_species), paste0("r", 1:l_resources))
 
 #pass to ODE solver
 #sol <- ode(y = x0, times = times, func = cr_de, parms = p, method = "lsoda")
-sol <- ode(y=x0, times=times, func=cr_de, parms=p, method="lsoda")
+sol        <- ode(y=x0, times=times, func=cr_de, parms=p, method="lsoda")
+sol_linear <- ode(y=x0, times=times, func=cr_de_linear, parms=p, method="lsoda")
 
 #save as list
-SOL <- list(p=p,sol=as.data.frame(sol)) #save solution
+SOL        <- list(p=p,sol=as.data.frame(sol)) #save solution
+SOL_linear <- list(p=p,sol=as.data.frame(sol_linear)) #save solution
 
 if(!dir.exists("results")) dir.create("results") #for ppl running for first time; results folder is not tracked in git
 saveRDS(SOL,"results/SOL.rds")
+saveRDS(SOL_linear,"results/SOL_linear.rds")

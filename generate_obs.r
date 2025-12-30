@@ -1,23 +1,17 @@
-SOL <- readRDS('results/SOL.rds')
-sol <- SOL[['sol']]
-p   <- SOL[['p']]
-
-## dynamics of relative abundance
-
-B <- sol[,2:(p$n_species+1)]
+source('unpack.r')
 
 #absolute cellular abundance
 pgN_cell <- runif(n_species,0.01,0.2) #randomize mass per cell
 Q        <- 1/1E6 * 14.01 * 1E12 * 1/pgN_cell #convert micromoles to cells [mole/umole]*[gN/moleN]*[pg/g]*[cell/pg]
-C        <- t(apply(B,1,function(x) Q*x)) #compute relative cell abundance
+n        <- t(apply(b,1,function(x) Q*x)) #compute relative cell abundance
 
 #total cellular abundance
-C_T      <- rowSums(C) 
+n_T      <- rowSums(n) 
 
 #relative abundance
-C_tilde  <- t(apply(C,1,function(x) x/sum(x)))
+n_tilde  <- t(apply(n,1,function(x) x/sum(x)))
 
-bgc <- sol[,(p$n_resources + p$n_species + 2):ncol(sol)]
+#consumption rates (c)
 
 #observed genome
 Gfalse_neg <- 0.8
@@ -31,8 +25,6 @@ plot(thetas,log10(dbinom(sum(p$G - G_obs),size=p$n_resources*p$n_species,prob=th
 
 
 #### SAMPLE BGC at time points and regress against genomic context
-
-
 
 
 #plot absolute vs. relative abundance
