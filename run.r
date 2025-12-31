@@ -8,7 +8,7 @@ source('src/cr_de_linear.r')
 
 #system dimensions
 l_species   <- 20
-l_resources <- 10
+l_resources <- 8
 
 #integration time
 years <- 11
@@ -23,7 +23,7 @@ S     <- runif(l_resources,S_min,S_max) #substrate supply
 omega <- rep(365,l_resources) #periodicity of substrate supplies - assuming all seasonal
 phi   <- seq(-2*pi,2*pi,length.out=l_resources) #periodicity of substrate supplies - assuming all seasonal
 A     <- runif(l_resources,0,2)
-trend <- 0.001 #[uM/day/day]
+trend <- 0.0005 #[uM/day/day]
 
 ################################
 ## biological parameters
@@ -116,3 +116,4 @@ SOL_linear <- list(p=p,sol=as.data.frame(sol_linear)) #save solution
 if(!dir.exists("results")) dir.create("results") #for ppl running for first time; results folder is not tracked in git
 saveRDS(SOL,"results/SOL.rds")
 saveRDS(SOL_linear,"results/SOL_linear.rds")
+

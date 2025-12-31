@@ -22,7 +22,7 @@ for(i in 1:p$l_species){
     }
 }
 
-#stack state vector that includes interactions
+#stack design matrix that includes interactions
 X <- as.matrix(X[rep(1:3650,30),])
 
 #fit linear regression
