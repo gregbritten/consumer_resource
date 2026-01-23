@@ -1,5 +1,6 @@
 library(deSolve)
 library(viridis)
+library(fields)
 source('src/cr_de.r')
 
 burn <- 367 
@@ -29,7 +30,7 @@ n_T_ref   <- rowSums(n_ref)
 ii <- as.numeric(which(colMeans(n_ref)>1E8)[1])
 
 ## modify parameters
-factors <- seq(0.1,2,0.05)
+factors <- seq(0.1,2,length.out)
 
 SOL_mod=b_mod=n_mod <- list()
 
@@ -86,10 +87,14 @@ for(i in 1:length(factors)){
 }
 
 
-sds <- c(0.1,0.2,0.5)
-fs  <- c(1,7,30)
+#sds <- c(0.1,0.2,0.5)
+#fs  <- c(1,7,30)
 
-ll <- array(NA,dim=c(length(fs),length(sds),length(factors)))
+sds <- seq(0.1,0.5,length.out=25)
+fs  <- seq(1,30,length.out=20)
+
+ll       <- array(NA,dim=c(length(fs),length(sds),length(factors)))
+dll=d2ll <- matrix(NA, nrow=length(fs), ncol=length(sds)) 
 
 for(i in 1:length(fs)){
     for(j in 1:length(sds)){
@@ -97,17 +102,42 @@ for(i in 1:length(fs)){
             es <- e[[k]][seq(1,tf,fs[i]),]
             ll[i,j,k] <- sum(dnorm(es,mean=0,sd=sds[j],log=TRUE))
         }
+        dll[i,j] <- abs(diff(ll[i,j,]))[19]
+        d2ll[i,j] <- abs(diff(diff(ll[i,j,])))[19]
     }
 }
 
-par(mfrow=c(1,2))
-plot(factors,ll[1,1,],type='l',ylim=c(-5E5,1E5))
-lines(factors,ll[2,1,],type='l')
-lines(factors,ll[3,1,],type='l')
-abline(v=1,lty=2)
 
-plot(factors,ll[1,1,],type='l',ylim=c(-5E5,1E5))
-lines(factors,ll[1,2,],type='l')
-lines(factors,ll[1,3,],type='l')
+
+
+pdf('~/dropbox/working/consumer_resource/consumer_resource/plots/expected_CI.pdf',height=4,width=5)
+par(mfrow=c(1,1))
+filled.contour(x=fs,y=sds*100,z=sqrt(1/d2ll))
+mtext(side=1,"Sampling Period [days]",line=2.5,adj=0.1)
+mtext(side=2,"Measurement noise [%]",line=2.5)
+mtext(adj=0,"c) Expected estimation error")
+dev.off()
+
+
+pdf('~/dropbox/working/consumer_resource/consumer_resource/plots/likelihood_profile.pdf',height=3.75,width=8)
+cols <- turbo(10)
+par(mfrow=c(1,2),mar=c(2,2,2,2),oma=c(2,2,2,2),cex.lab=0.8,cex.axis=0.8)
+plot(factors,ll[1,1,],type='l',ylim=c(-5E5,1E5),col=cols[1],xlab='',ylab='')
+lines(factors,ll[3,1,],type='l',col=cols[2])
+lines(factors,ll[10,1,],type='l',col=cols[3])
 abline(v=1,lty=2)
+mtext(side=2,expression('Log Likelihood'~italic('l('*theta*')')),line=2.5)
+mtext(adj=0,'a) Sampling Frequency')
+legend('bottomright', legend = c('daily', 'weekly', 'monthly'),bty='n',lty=1,col=cols[1:3])
+mtext(side=1,expression(italic(theta)*'/'*theta['true']),line=2.5)
+
+
+plot(factors,ll[1,1,],type='l',ylim=c(-5E5,1E5),col=cols[1],xlab='',ylab='')
+lines(factors,ll[1,5,],type='l',col=cols[2])
+lines(factors,ll[1,10,],type='l',col=cols[3])
+abline(v=1,lty=2)
+mtext(adj=0,'b) Measurement Noise')
+legend('bottomright', legend = c('10%', '20%', '50%'),bty='n',lty=1,col=cols[1:3])
+mtext(side=1,expression(italic(theta)*'/'*theta['true']),line=2.5)
+dev.off()
 
