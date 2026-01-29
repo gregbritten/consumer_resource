@@ -54,5 +54,9 @@ cr_de <- function(t, x, p, cyclic=TRUE) {
         dx[l_species + j] <- D*(S[j] - r[j]) - consumption_j[j]  #supply of resource
 
     }
-    return(list(dx,consumption_j=consumption_j,xdot=dx))  #pass deSolve a list containing a vector of derivatives dx, can also append derived quanities
+
+    # Calculate gross biomass production
+    growth <- mu * b
+
+    return(list(dx,consumption_j=consumption_j,xdot=dx,growth=growth))  #pass deSolve a list containing a vector of derivatives dx, can also append derived quanities
 }
