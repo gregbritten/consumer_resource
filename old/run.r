@@ -1,5 +1,3 @@
-
-
 library(deSolve)
 library(here)
 setwd(here::here())
@@ -9,8 +7,8 @@ source('src/cr_de.r')
 source('src/cr_de_linear.r')
 
 #system dimensions
-l_species   <- 20
-l_resources <- 8
+l_species   <- 50
+l_resources <- 30
 
 #integration time
 years <- 11
@@ -112,10 +110,10 @@ sol        <- ode(y=x0, times=times, func=cr_de, parms=p, method="lsoda")
 sol_linear <- ode(y=x0, times=times, func=cr_de_linear, parms=p, method="lsoda")
 
 #save as list
-SOL        <- list(p=p,sol=as.data.frame(sol)) #save solution
+SOL2        <- list(p=p,sol=as.data.frame(sol)) #save solution
 SOL_linear <- list(p=p,sol=as.data.frame(sol_linear)) #save solution
 
 if(!dir.exists("results")) dir.create("results") #for ppl running for first time; results folder is not tracked in git
-saveRDS(SOL,"results/SOL.rds")
+saveRDS(SOL2,"results/SOL2.rds")
 saveRDS(SOL_linear,"results/SOL_linear.rds")
 
