@@ -77,6 +77,6 @@ model {
 
   // Likelihood
   for (n in 1:N_obs) {
-    y_obs[n] ~ normal(y_hat[n], sigma);
+    y_obs[n] ~ normal(y_hat[n], sigma*y_hat[n]);
   }
 }
